@@ -5,35 +5,60 @@ import pickle
 
 ####### DDR Risk Binary #######
 ddr_risk_binary_features = {
+    'age': [],
     'RS Results': [], 
     'ER_gene score': [], 
     'PR_gene score': [], 
+    'HER2_Gene score': [],
+    'tumor_size': [],
     'Grade': [], 
     'tumor_size_range_numeric': [], 
+    'PR_level_range_numeric': [],
     'ki67_range_numeric': []
 }
 
 ####### DDR Risk Regression #######
 ddr_risk_regr_features = {
+    "age": [],
     "RS Results": [],
     "ER_gene score": [],
     "PR_gene score": [],
     "tumor_size": [],
     "Grade": [],
     "tumor_size_range_numeric": [],
-    "ER_level_range_numeric": [],
     "PR_level_range_numeric": [],
+    'ki67_range_numeric': []
 }
 
-####### CT Benefit #######
+####### CT Benefit Binary #######
 ct_benefit_features = {
+    "age": [],
     "RS Results": [],
     "ER_gene score": [],
     "PR_gene score": [],
+    "HER2_Gene score": [],
+    "tumor_size": [],
+    "histotype_numeric": [],
     "Grade": [],
+    "tumor_size_range_numeric": [],
     "PR_level_range_numeric": [],
     "ki67_range_numeric": [],
-    "HER2": [],
+    # "HER2": [],
+}
+
+####### CT Benefit Regression #######
+ct_benefit_features = {
+    "age": [],
+    "RS Results": [],
+    "ER_gene score": [],
+    "PR_gene score": [],
+    "HER2_Gene score": [],
+    "tumor_size": [],
+    "Grade": [],
+    "tumor_size_range_numeric": [],
+    "PR_level_range_numeric": [],
+    "ki67_range_numeric": [],
+    # "HER2": [],
 }
 
 st.set_page_config(
@@ -75,35 +100,60 @@ def _ki67_range(ki67):
     else:
         return 1
     
+def _histotype_numeric(histotype):
+    if histotype == "NST":
+        return 0
+    if histotype == "Lobular":
+        return 1
+    if histotype == "Other":
+        return 2
+    
+def _lvi_numeric(lvi):
+    if lvi == "No":
+        return 0
+    if lvi == "Yes":
+        return 1
+    
 
 def predict(
+    age: int,
     rs_result: float,
     er_gene_score: float,
     pr_gene_score: float,
+    her2_gene_score: float,
     tumor_size: float,
     grade: float,
     er_level: float,
     pr_level: float,
     her_2: float,
     ki_67: float,
+    histotype: str,
+    lvi: str,
     col
 ):
-    ddr_reg_model = pickle.load(open('model/ddr_risk_real_synth_regr.sav', 'rb'))
+    ddr_reg_model = pickle.load(open('model/ddr_risk_real_synth_reg.sav', 'rb'))
     ddr_clf_model = pickle.load(open('model/ddr_risk_real_synth_clf.sav', 'rb'))
-    ct_benefit_model = pickle.load(open('model/ct_benefit_clf.sav', 'rb'))
+    ct_benefit_clf_model = pickle.load(open('model/ct_benefit_clf.sav', 'rb'))
+    ct_benefit_reg_model = pickle.load(open('model/ct_benefit_reg.sav', 'rb'))
     
     tumor_size_range = _tumor_size_range(tumor_size)[1]
     er_level_range = _er_level_range(er_level)
     pr_level_range = _pr_level_range(pr_level)[1]
     ki_67_range = _ki67_range(ki_67)
+    histotype_numeric = _histotype_numeric(histotype)
+    lvi_numeric = _lvi_numeric(lvi)
     
     ####### DDR Risk Binary #######
     ddr_risk_binary_features = {
+        'age': [age],
         'RS Results': [rs_result], 
         'ER_gene score': [er_gene_score], 
         'PR_gene score': [pr_gene_score], 
+        'HER2_Gene score': [her2_gene_score],
+        'tumor_size': [tumor_size], 
         'Grade': [grade], 
         'tumor_size_range_numeric': [tumor_size_range], 
+        'PR_level_range_numeric': [pr_level_range],
         'ki67_range_numeric': [ki_67_range]
     }
     
@@ -113,66 +163,96 @@ def predict(
     
     ####### DDR Risk Regression #######
     ddr_risk_regr_features = {
+        "age": [age],
         "RS Results": [rs_result],
         "ER_gene score": [er_gene_score],
         "PR_gene score": [pr_gene_score],
         "tumor_size": [tumor_size],
         "Grade": [grade],
         "tumor_size_range_numeric": [tumor_size_range],
-        "ER_level_range_numeric": [er_level_range],
-        "PR_level_range_numeric": [ki_67_range],
+        "PR_level_range_numeric": [pr_level_range],
+        'ki67_range_numeric': [ki_67_range]
     }
     
     x = pd.DataFrame(data=ddr_risk_regr_features)
     ddr_val = ddr_reg_model.predict(x)[0]
 
-    ####### CT Benefit #######
-    ct_benefit_features = {
+    ####### CT Benefit Binary #######
+    ct_benefit_clf_features = {
+        "age": [age],
         "RS Results": [rs_result],
         "ER_gene score": [er_gene_score],
         "PR_gene score": [pr_gene_score],
+        "HER2_Gene score": [her2_gene_score],
+        "tumor_size": [tumor_size],
+        "histotype_numeric": [histotype_numeric],
         "Grade": [grade],
+        "tumor_size_range_numeric": [tumor_size_range],
         "PR_level_range_numeric": [pr_level_range],
         "ki67_range_numeric": [ki_67_range],
-        "HER2": [her_2],
     }
     
-    x = pd.DataFrame(data=ct_benefit_features)
-    ct_benefit = ct_benefit_model.predict(x)[0]
-    ct_benefit_proba = ct_benefit_model.predict_proba(x)[0]
+    x = pd.DataFrame(data=ct_benefit_clf_features)
+    ct_benefit_yes = ct_benefit_clf_model.predict(x)[0]
+    ct_benefit_yes_proba = ct_benefit_clf_model.predict_proba(x)[0]
+    
+    
+    ####### CT Benefit Regression #######
+    ct_benefit_reg_features = {
+        "age": [age],
+        "RS Results": [rs_result],
+        "ER_gene score": [er_gene_score],
+        "PR_gene score": [pr_gene_score],
+        "HER2_Gene score": [her2_gene_score],
+        "tumor_size": [tumor_size],
+        "Grade": [grade],
+        "tumor_size_range_numeric": [tumor_size_range],
+        "PR_level_range_numeric": [pr_level_range],
+        "ki67_range_numeric": [ki_67_range]
+    }
+    
+    x = pd.DataFrame(data=ct_benefit_reg_features)
+    ct_benefit_val = ct_benefit_reg_model.predict(x)[0]
     
     with col:
-        st.subheader("Distance Disease Recurrence Risk at 9 years:")
+        
+        st.markdown("<h3 style='text-align: left;'>Distance Disease Recurrence Risk at 9 years</h3>", unsafe_allow_html=True)
         _, ddr_col, _ = st.columns(3)
         ddr_val_text = 'high' if ddr_high==1 else 'low'
         ddr_val_prob = 100*ddr_high_proba[ddr_high]
         with ddr_col:
-            st.markdown(f"## **{ddr_val_text.upper()}**")
-        st.write(f"DDR Risk at 9 years is **{ddr_val_text.upper()}** with probability {ddr_val_prob:.2f}%.")
-        st.write(f"DDR Risk at 9 years value is **{int(ddr_val)}**.")
-        
-        st.write("\n\n")
-        
-        st.subheader("Chemiotherapy Benefit:")
-        _, ct_col, _ = st.columns(3)
-        ct_benefit_text = 'yes' if ct_benefit==1 else 'no'
-        ct_benefit_prob = 100*ct_benefit_proba[ct_benefit]
-        with ct_col:
-            st.markdown(f"## **{ct_benefit_text.upper()}**")
-        st.write(f"Chemiotherapy benefit predicted with probability {ct_benefit_prob:.2f}%.")
+            st.markdown(f"## **{int(ddr_val)}**", unsafe_allow_html=True)
+        st.write(f"Risk category is **{ddr_val_text.upper()}**")
+        st.write(f"Risk value and category predicted with probability **{ddr_val_prob:.2f}%**")
             
+        st.divider()
+        
+        st.markdown("<h3 style='text-align: left;'>Chemiotherapy Benefit</h3>", unsafe_allow_html=True)
+        _, ct_col, _ = st.columns(3)
+        ct_benefit_text = 'yes' if ct_benefit_yes==1 else 'no'
+        ct_benefit_prob = 100*ct_benefit_yes_proba[ct_benefit_yes]
+        with ct_col:
+            st.markdown(f"## **{int(ct_benefit_val)}**", unsafe_allow_html=True)
+        if ct_benefit_text == 'yes':
+            st.write(f"Chemiotherapy benefit is suggested by the model")
+        else:
+            st.write(f"Chemiotherapy benefit is not suggested by the model")
+        
+        st.write(f"Chemiotherapy should be considered for values > 3%")
         
 
 def rsclin_ui():
     
-    ddr_reg_model = pickle.load(open('model/ddr_risk_real_synth_regr.sav', 'rb'))
-    ddr_clf_model = pickle.load(open('model/ddr_risk_real_synth_clf.sav', 'rb'))
-    ct_benefit_model = pickle.load(open('model/ct_benefit_clf.sav', 'rb'))
+    # ddr_reg_model = pickle.load(open('model/ddr_risk_real_synth_reg.sav', 'rb'))
+    # ddr_clf_model = pickle.load(open('model/ddr_risk_real_synth_clf.sav', 'rb'))
+    # ct_benefit_clf_model = pickle.load(open('model/ct_benefit_clf.sav', 'rb'))
+    # ct_benefit_reg_model = pickle.load(open('model/ct_benefit_reg.sav', 'rb'))
     
-    features_col, pred_col = st.columns(2)
+    features_col, _, pred_col = st.columns([4, 1, 4])
     with features_col:
-        st.header("Patient Characteristics")
         
+        st.markdown("<h2 style='text-align: center;'>Patient Features</h2>", unsafe_allow_html=True)
+
         age = st.number_input('Patient Age')
         st.write('Patient age is ', age)
         
@@ -203,6 +283,16 @@ def rsclin_ui():
         
         st.divider()
         
+        her2_gene_score = st.number_input('HER2 Gene Score', min_value=1.0, max_value=100.0)
+        st.write("HER2 Gene Score is ", her2_gene_score)
+        
+        st.divider()
+        
+        her_2 = st.selectbox('HER2', options=[0, 1, 2])
+        st.write("HER2 is ", her_2)
+        
+        st.divider()
+        
         tumor_grade = st.selectbox('Tumor Grade', options=[1, 2, 3])
         st.write("Tumor Grade is ", tumor_grade)
         
@@ -213,42 +303,48 @@ def rsclin_ui():
         
         st.divider()
         
-        her_2 = st.selectbox('HER2', options=[0, 1, 2])
-        st.write("HER2 is ", her_2)
+        lvi = st.selectbox('Lymphovascular invasion (LVI)', options=["No", "Yes"])
+        st.write(f"LVI is {lvi}")
+        
+        st.divider()
+        
+        histotype = st.selectbox('Histotype', options=["NST", "Lobular", "Other"])
+        st.write("Histotype is ", histotype)
         
         st.divider()
         
         ki_67 = st.number_input('ki67')
         st.write("ki67 is ", ki_67)
         
-        
-        _, bttn_col, _ = st.columns(3)
+        _, bttn_col, _ = st.columns([4, 2, 4])
         with bttn_col:    
             st.button(
                 "Predict", 
                 on_click=predict, 
                 args=(
+                    age,
                     rs_result,
                     er_gene_score,
                     pr_gene_score,
+                    her2_gene_score,
                     tumor_size,
                     tumor_grade,
                     er_level,
                     pr_level,
                     her_2,
                     ki_67,
+                    histotype,
+                    lvi,
                     pred_col
                 )
             )
     with pred_col:
-        st.header("Machine Learning Predictions")
+        st.markdown("<h2 style='text-align: center;'>Machine Learning Predictions</h2>", unsafe_allow_html=True)
         
 
 if __name__ == "__main__":
     st.title("ICH Breast Cancer AI Prototype")
-        
-    st.markdown("#### A Machine Learning tool that utilizes a combination of genomic data and clinical pathological features to estimate the distance disease recurrence (DDR) risk at a 9 years and the potential benefits of chemotherapy for hormone receptor positive, HER2 negative, node negative early breast cancer patients.")
-    
-    st.markdown("#### The models are trained on a blend of real world and synthetic data generated by a GAN.")
-    
+    intro = "<p style='font-size:20px;'>A Machine Learning tool that leverages a combination of genomic data and clinical pathological features to estimate the distance disease recurrence risk at a 9 years and the potential benefits of chemotherapy for hormone receptor positive, HER2 negative, node negative early breast cancer patients.</p>"
+    st.markdown(intro, unsafe_allow_html=True) 
+    st.divider()
     rsclin_ui()
