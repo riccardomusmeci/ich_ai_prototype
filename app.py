@@ -62,7 +62,7 @@ ct_benefit_features = {
 }
 
 st.set_page_config(
-    page_title="RSClin Estimator", 
+    page_title="MLClin Prototype", 
     page_icon=None,
     initial_sidebar_state="auto", 
     layout="wide"
@@ -251,70 +251,58 @@ def rsclin_ui():
     features_col, _, pred_col = st.columns([4, 1, 4])
     with features_col:
         
-        st.markdown("<h2 style='text-align: center;'>Patient Features</h2>", unsafe_allow_html=True)
+        # st.markdown("<h2 style='text-align: center;'>Patient Features</h2>", unsafe_allow_html=True)
 
-        age = st.number_input('Patient Age')
-        st.write('Patient age is ', age)
-        
-        st.divider()
-        
-        rs_result = st.number_input('RS Result', min_value=1.0, max_value=100.0)
-        st.write("Recurrence Score is ", rs_result)
-        
-        st.divider()
+        st.write("#### Oncotype DX Report")
+                
+        rs_result = st.number_input('RS Result (0-100)', min_value=0, max_value=100, value=0, step=1)
+        # st.write("Recurrence Score is ", rs_result)
         
         er_gene_score = st.number_input('Estrogen Receptor Gene Score', min_value=1.0, max_value=100.0)
-        st.write("Estrogen Receptor Gene Score is ", er_gene_score)
-        
-        st.divider()
-        
-        er_level = st.number_input('Estrogen Level')
-        st.write("Estrogen Level is ", er_level)
-        
-        st.divider()
-        
+        # st.write("Estrogen Receptor Gene Score is ", er_gene_score)
+    
         pr_gene_score = st.number_input('Progesteron Receptor Gene Score', min_value=1.0, max_value=100.0)
-        st.write("Progesteron Receptor Gene Score is ", er_gene_score)
-        
-        st.divider()
-        
-        pr_level = st.number_input('Progesteron Level')
-        st.write(f"Progesteron Level is {_pr_level_range(pr_level)[0]}")
-        
-        st.divider()
+        # st.write("Progesteron Receptor Gene Score is ", er_gene_score)    
         
         her2_gene_score = st.number_input('HER2 Gene Score', min_value=1.0, max_value=100.0)
-        st.write("HER2 Gene Score is ", her2_gene_score)
+        # st.write("HER2 Gene Score is ", her2_gene_score)
         
-        st.divider()
+        st.write("\n")
+        
+        st.write("#### Clinicolpathological Features")
+        
+        age = st.number_input('Patient Age', min_value=0, max_value=100, value=0, step=1)
+        # st.write('Patient age is ', age)        
+        
+        
+        er_level = st.number_input('Estrogen Level (%)', min_value=0, max_value=100, value=0, step=1)
+        # st.write("Estrogen Level is ", er_level)
+        
+        
+        pr_level = st.number_input('Progesteron Level (%)', min_value=0, max_value=100, value=0, step=1)
+        # st.write(f"Progesteron Level is {_pr_level_range(pr_level)[0]}")
+        
         
         her_2 = st.selectbox('HER2', options=[0, 1, 2])
-        st.write("HER2 is ", her_2)
+        # st.write("HER2 is ", her_2)
         
-        st.divider()
         
         tumor_grade = st.selectbox('Tumor Grade', options=[1, 2, 3])
-        st.write("Tumor Grade is ", tumor_grade)
+        # st.write("Tumor Grade is ", tumor_grade)
         
-        st.divider()
         
         tumor_size = st.number_input('Tumor Size (mm)', min_value=1)
-        st.write(f"Tumor size is in **{_tumor_size_range(tumor_size)[0]}** group")
+        # st.write(f"Tumor size is in **{_tumor_size_range(tumor_size)[0]}** group")
         
-        st.divider()
+        lvi = st.selectbox('Lymphovascular invasion', options=["No", "Yes"])
+        # st.write(f"LVI is {lvi}")
         
-        lvi = st.selectbox('Lymphovascular invasion (LVI)', options=["No", "Yes"])
-        st.write(f"LVI is {lvi}")
-        
-        st.divider()
         
         histotype = st.selectbox('Histotype', options=["NST", "Lobular", "Other"])
-        st.write("Histotype is ", histotype)
+        # st.write("Histotype is ", histotype)
         
-        st.divider()
-        
-        ki_67 = st.number_input('ki67')
-        st.write("ki67 is ", ki_67)
+        ki_67 = st.number_input('ki67 (%)', min_value=0, max_value=100, value=0, step=1)
+        # st.write("ki67 is ", ki_67)
         
         _, bttn_col, _ = st.columns([4, 2, 4])
         with bttn_col:    
@@ -339,11 +327,11 @@ def rsclin_ui():
                 )
             )
     with pred_col:
-        st.markdown("<h2 style='text-align: center;'>Machine Learning Predictions</h2>", unsafe_allow_html=True)
+        st.markdown("<h3 style='text-align: center;'>Machine Learning Predictions</h2>", unsafe_allow_html=True)
         
 
 if __name__ == "__main__":
-    st.title("ICH Breast Cancer AI Prototype")
+    st.title("MLClin Prototype")
     intro = "<p style='font-size:20px;'>A Machine Learning tool that leverages a combination of genomic data and clinical pathological features to estimate the distance disease recurrence risk at a 9 years and the potential benefits of chemotherapy for hormone receptor positive, HER2 negative, node negative early breast cancer patients.</p>"
     st.markdown(intro, unsafe_allow_html=True) 
     st.divider()
