@@ -176,6 +176,7 @@ def predict(
     
     x = pd.DataFrame(data=ddr_risk_regr_features)
     ddr_val = ddr_reg_model.predict(x)[0]
+    ddr_val = ddr_val if ddr_val>=0 else 0
 
     ####### CT Benefit Binary #######
     ct_benefit_clf_features = {
@@ -213,32 +214,34 @@ def predict(
     
     x = pd.DataFrame(data=ct_benefit_reg_features)
     ct_benefit_val = ct_benefit_reg_model.predict(x)[0]
+    ct_benefit_val = ct_benefit_val if ct_benefit_val>=0 else 0
     
     with col:
         
-        st.markdown("<h3 style='text-align: left;'>Distance Disease Recurrence Risk at 9 years</h3>", unsafe_allow_html=True)
-        _, ddr_col, _ = st.columns(3)
-        ddr_val_text = 'high' if ddr_high==1 else 'low'
+        st.markdown("<h3 style='text-align: left;'>Distance Recurrence Risk at 9 years</h3>", unsafe_allow_html=True)
+        st.markdown("low (<4%) - mid (4-12%) - high (>12%)", unsafe_allow_html=True)
+        _, ddr_col, _ = st.columns([1, 5, 1])
+        ddr_val_text = 'high' if ddr_high==1 else 'low/mid'
         ddr_val_prob = 100*ddr_high_proba[ddr_high]
         with ddr_col:
-            st.markdown(f"## **{int(ddr_val)}**", unsafe_allow_html=True)
-        st.write(f"Risk category is **{ddr_val_text.upper()}**")
-        st.write(f"Risk value and category predicted with probability **{ddr_val_prob:.2f}%**")
+            st.markdown(f"## Risk Category: **{ddr_val_text}**", unsafe_allow_html=True)
+            st.markdown(f"## Risk Value: **{int(ddr_val)}%**", unsafe_allow_html=True)
+        # st.write(f"Risk category is **{ddr_val_text.upper()}**")
+        st.write("\n")
+        st.write(f"Risk category predicted with a probability of **{ddr_val_prob:.2f}%** as result to RSClin™ estimates")
             
         st.divider()
         
         st.markdown("<h3 style='text-align: left;'>Chemiotherapy Benefit</h3>", unsafe_allow_html=True)
-        _, ct_col, _ = st.columns(3)
+        st.markdown("no ($\le$3%) - yes (>3%)", unsafe_allow_html=True)
+        _, ct_col, _ = st.columns([1, 5, 1])
         ct_benefit_text = 'yes' if ct_benefit_yes==1 else 'no'
         ct_benefit_prob = 100*ct_benefit_yes_proba[ct_benefit_yes]
         with ct_col:
-            st.markdown(f"## **{int(ct_benefit_val)}**", unsafe_allow_html=True)
-        if ct_benefit_text == 'yes':
-            st.write(f"Chemiotherapy benefit is suggested by the model")
-        else:
-            st.write(f"Chemiotherapy benefit is not suggested by the model")
-        
-        st.write(f"Chemiotherapy should be considered for values > 3%")
+            st.markdown(f"## Chemoterapy Benefit: **{ct_benefit_text}**", unsafe_allow_html=True)
+            st.markdown(f"## Benefit Value: **{int(ct_benefit_val)}%**", unsafe_allow_html=True)
+        st.write("\n")
+        st.write(f"Chemotherapy benefit category predicted with a probability of **{ct_benefit_prob:.2f}%** as result to RSClin™ estimates")
         
 
 def rsclin_ui():
@@ -248,7 +251,7 @@ def rsclin_ui():
     # ct_benefit_clf_model = pickle.load(open('model/ct_benefit_clf.sav', 'rb'))
     # ct_benefit_reg_model = pickle.load(open('model/ct_benefit_reg.sav', 'rb'))
     
-    features_col, _, pred_col = st.columns([4, 1, 4])
+    features_col, _, pred_col = st.columns([6, 1, 6])
     with features_col:
         
         # st.markdown("<h2 style='text-align: center;'>Patient Features</h2>", unsafe_allow_html=True)
@@ -301,7 +304,7 @@ def rsclin_ui():
         histotype = st.selectbox('Histotype', options=["NST", "Lobular", "Other"])
         # st.write("Histotype is ", histotype)
         
-        ki_67 = st.number_input('ki67 (%)', min_value=0, max_value=100, value=0, step=1)
+        ki_67 = st.number_input('ki67 (%)', min_value=0, max_value=100, value=0)
         # st.write("ki67 is ", ki_67)
         
         _, bttn_col, _ = st.columns([4, 2, 4])
@@ -332,7 +335,10 @@ def rsclin_ui():
 
 if __name__ == "__main__":
     st.title("RSC4All")
-    intro = "<p style='font-size:20px;'>A Machine Learning tool that leverages a combination of genomic data and clinical pathological features to estimate the distance disease recurrence risk at a 9 years and the potential benefits of chemotherapy for hormone receptor positive, HER2 negative, node negative early breast cancer patients.</p>"
+    intro = "<p style='font-size:20px;'>A Machine Learning tool that leverages a combination of genomic data and clinical pathological features to estimate the distance recurrence risk at a 9 years and the potential benefits of chemotherapy mirroring the RSClin™ results in hormone receptor positive, HER2 negative, node negative early breast cancer patients.</p>"
     st.markdown(intro, unsafe_allow_html=True) 
     st.divider()
     rsclin_ui()
+    st.divider()
+    st.write("\n\n\n") 
+    st.image("static/qr_code.jpg", width=200, caption="Development and Validation of a Machine Learning-based Nomogram to Predict RSClin Results and Guide Adjuvant Treatment of Node-negative HR-positive/HER2-negative Early Breast Cancer in Europe")
