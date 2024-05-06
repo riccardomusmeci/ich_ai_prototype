@@ -304,7 +304,7 @@ def rsclin_ui():
         histotype = st.selectbox('Histotype', options=["NST", "Lobular", "Other"])
         # st.write("Histotype is ", histotype)
         
-        ki_67 = st.number_input('ki67 (%)', min_value=0, max_value=100, value=0)
+        ki_67 = st.number_input('ki67 (%)', min_value=0.0, max_value=100.0, value=0)
         # st.write("ki67 is ", ki_67)
         
         _, bttn_col, _ = st.columns([4, 2, 4])
