@@ -62,7 +62,7 @@ ct_benefit_features = {
 }
 
 st.set_page_config(
-    page_title="MLClin Prototype", 
+    page_title="RSC4All", 
     page_icon=None,
     initial_sidebar_state="auto", 
     layout="wide"
@@ -331,7 +331,7 @@ def rsclin_ui():
         
 
 if __name__ == "__main__":
-    st.title("MLClin Prototype")
+    st.title("RSC4All")
     intro = "<p style='font-size:20px;'>A Machine Learning tool that leverages a combination of genomic data and clinical pathological features to estimate the distance disease recurrence risk at a 9 years and the potential benefits of chemotherapy for hormone receptor positive, HER2 negative, node negative early breast cancer patients.</p>"
     st.markdown(intro, unsafe_allow_html=True) 
     st.divider()
