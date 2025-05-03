@@ -18,7 +18,7 @@ def _tumor_size_range(tumor_size):
         return "t1_c", 2
     elif 21<=tumor_size<=50:
         return "t2", 3
-    elif el>=51:
+    elif tumor_size>=51:
         return "t3", 4
     
 def _pr_level_range(pr_level):
